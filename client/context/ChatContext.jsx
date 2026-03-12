@@ -8,7 +8,7 @@ export const ChatContext=createContext()
 export const ChatProvider=({children})=>{
 const [messages,setMessages]=useState([])
 const[users,setUsers]=useState([])
-const[selectedUser,setSelectedUSer]=useState(null)
+const[selectedUser,setSelectedUser]=useState(null)
 const[unseenMessages, setUnseenMessages]=useState({})
 
 const{socket,axios}=useContext(AuthContext)
@@ -92,13 +92,21 @@ useEffect(()=>{
     return ()=> unsubscribeFromMessages()
 },[socket,selectedUser])
 
-    const value={
-        messages,users,selectedUser,getUsers,setMessages,sendMessage,setSelectedUSer,unseenMessages,setUnseenMessages
-    }   
-     return(
-     <ChatProvider.Provider value={value}>
+   const value={
+    messages,
+    users,
+    selectedUser,
+    getUsers,
+    setMessages,
+    sendMessage,
+    setSelectedUser,
+    unseenMessages,
+    setUnseenMessages
+}
 
+return(
+  <ChatContext.Provider value={value}>
     {children}
-    </ChatProvider.Provider>
-    )
+  </ChatContext.Provider>
+)
 }
