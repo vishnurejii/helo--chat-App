@@ -21,11 +21,9 @@ const handleSendMessage=async(e)=>{
   if(input.trim()==="") return null
   await sendMessage({text: input.trim()})
   setInput("")
-
 }
 
 //handle sending an image
-
 const handleSendImage=async(e)=>{
   const file=e.target.files[0]
   if(!file || !file.type.startsWith("image/")){
@@ -57,9 +55,13 @@ useEffect(()=>{
   return selectedUser ? (
     <div className='h-full overflow-y-auto relative backdrop-blur-lg'>
 
-        {/***********header*************** */}
+        {/* ***********header*************** */}
       <div className='flex items-center gap-3 py-3 mx-4 border-b border-stone-500'>
-        <img src={selectedUser.profilePic || assets.avatar_icon} alt="" className='w-8 rounded-full' />
+        <img 
+        src={selectedUser?.profilePic ? selectedUser.profilePic : assets.avatar_icon} 
+        alt="" 
+        className='w-8 h-8 rounded-full object-cover' 
+        />
         <p className='flex-1 text-lg text-white flex items-center gap-2'>
            {selectedUser.fullName}
             {onlineUsers.includes(selectedUser._id) && <span className='w-2 h-2 rounded-full bg-green-500'></span>}
@@ -79,13 +81,13 @@ useEffect(()=>{
         />
       </div>
 
-        {/***********chat area*********** */}
+        {/* ***********chat area*********** */}
         <div className='flex flex-col h-[calc(100%-70px)] overflow-y-auto p-3 pb-6'>
             {messages.map((msg,index)=>(
                 <div 
                   key={index} 
                   className={`flex items-end gap-2 justify-end ${
-                    msg.senderId !== authUser._id && 'flex-row-reverse'
+                    msg.senderId !== authUser._id ? 'flex-row-reverse' : ''
                   }`}
                 >
                     {msg.image ? (
@@ -110,12 +112,12 @@ useEffect(()=>{
                     <div className='text-center text-xs'>
                         <img 
                           src={
-                            msg.senderId === authUser._id ? authUser?.
-                              profilePic || assets.avatar_icon :selectedUser?.profilePic || assets.avatar_icon
-                              
+                            msg.senderId === authUser._id
+                              ? (authUser?.profilePic ? authUser.profilePic : assets.avatar_icon)
+                              : (selectedUser?.profilePic ? selectedUser.profilePic : assets.avatar_icon)
                           } 
                           alt="" 
-                          className='w-7 rounded-full' 
+                          className='w-7 h-7 rounded-full object-cover' 
                         />
                         <p className='text-gray-500'>{formatMessagTime(msg.createdAt)}</p>
                     </div>
@@ -124,8 +126,7 @@ useEffect(()=>{
             <div ref={scrollEnd}></div>
         </div>
 
-
-        {/*************bottom area**************  */}
+        {/* *************bottom area************** */}
             <div className='absolute bottom-0 left-0 right-0 flex items-center gap-3 p-3'>
                 <div className='flex-1 flex items-center bg-gray-100/12 px-3 rounded-full'>
                     <input 
