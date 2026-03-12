@@ -2,7 +2,6 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { AuthContext } from "./AuthContext";
 import toast from "react-hot-toast";
 
-
 export const ChatContext=createContext()
 
 export const ChatProvider=({children})=>{
@@ -22,7 +21,7 @@ const getUsers=async()=>{
             setUnseenMessages(data.unseenMessages)
         }
     }catch(error){
-        toast.error(error.messages)
+        toast.error(error.message)
 
     }
 }
@@ -38,7 +37,7 @@ const getMessages=async(userId)=>{
 
     }
 catch(error){
-    toast.error(error.messages)
+    toast.error(error.message)
 
 }
 }
@@ -87,17 +86,18 @@ const unsubscribeFromMessages=()=>{
     if(socket) socket.off("newMessage")
 
 }
+
 useEffect(()=>{
     subscribeToMessages()
     return ()=> unsubscribeFromMessages()
 },[socket,selectedUser])
 
-   const value={
+const value={
     messages,
     users,
     selectedUser,
     getUsers,
-    setMessages,
+    getMessages,
     sendMessage,
     setSelectedUser,
     unseenMessages,
