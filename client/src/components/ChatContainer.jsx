@@ -7,13 +7,24 @@ import toast from 'react-hot-toast'
 
 const ChatContainer = () => {
 
-  const {messages, selectedUser, setSelectedUser,
-     sendMessage, getMessages}=useContext(ChatContext)
-  const {authUser, onlineUsers}=useContext(AuthContext)
+  const {
+    messages,
+    selectedUser,
+    setSelectedUser,
+    sendMessage,
+    getMessages,
+    callState,
+    startCall,
+    acceptCall,
+    endCall,
+  } = useContext(ChatContext)
+  const {authUser, onlineUsers} = useContext(AuthContext)
 
-const scrollEnd=useRef()
+  const scrollEnd = useRef()
+  const localVideoRef = useRef()
+  const remoteVideoRef = useRef()
 
-const[input, setInput]=useState('')
+  const [input, setInput] = useState('')
 
 //handle sending a message
 const handleSendMessage=async(e)=>{
@@ -52,6 +63,18 @@ useEffect(()=>{
     }
 },[messages])
 
+useEffect(() => {
+  if (localVideoRef.current) {
+    localVideoRef.current.srcObject = callState.localStream || null
+  }
+}, [callState.localStream])
+
+useEffect(() => {
+  if (remoteVideoRef.current) {
+    remoteVideoRef.current.srcObject = callState.remoteStream || null
+  }
+}, [callState.remoteStream])
+
   return selectedUser ? (
     <div className='h-full overflow-y-auto relative backdrop-blur-lg'>
 
@@ -67,6 +90,27 @@ useEffect(()=>{
             {onlineUsers.includes(selectedUser._id) && <span className='w-2 h-2 rounded-full bg-green-500'></span>}
         </p>
 
+        <div className="hidden md:flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => startCall("video")}
+            disabled={callState.active || callState.incoming}
+            className="px-2 py-1 rounded bg-white/10 hover:bg-white/20 text-white disabled:opacity-40 disabled:cursor-not-allowed"
+            title="Start video call"
+          >
+            📹
+          </button>
+          <button
+            type="button"
+            onClick={() => startCall("voice")}
+            disabled={callState.active || callState.incoming}
+            className="px-2 py-1 rounded bg-white/10 hover:bg-white/20 text-white disabled:opacity-40 disabled:cursor-not-allowed"
+            title="Start voice call"
+          >
+            🎙️
+          </button>
+        </div>
+
         <img 
           onClick={()=> setSelectedUser(null)} 
           src={assets.arrow_icon} 
@@ -80,6 +124,81 @@ useEffect(()=>{
           className='md:hidden max-w-7' 
         />
       </div>
+
+      {/* ***********call overlays*********** */}
+      {callState.incoming && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/70 z-50 p-4">
+          <div className="bg-slate-900/90 rounded-lg p-4 w-full max-w-md text-center">
+            <p className="text-white text-lg font-semibold mb-2">
+              Incoming {callState.type} call
+            </p>
+            <p className="text-gray-200 mb-4">
+              From {callState.fromUser?.fullName || "Unknown"}
+            </p>
+            <div className="flex justify-center gap-2">
+              <button
+                type="button"
+                onClick={acceptCall}
+                className="px-4 py-2 rounded bg-green-600 text-white"
+              >
+                Accept
+              </button>
+              <button
+                type="button"
+                onClick={endCall}
+                className="px-4 py-2 rounded bg-red-600 text-white"
+              >
+                Decline
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {callState.active && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/70 z-50 p-4">
+          <div className="bg-slate-900/90 rounded-lg p-4 w-full max-w-3xl flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <p className="text-white font-semibold mb-2">
+                In call with {selectedUser?.fullName || callState.fromUser?.fullName || "User"}
+              </p>
+              <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
+                <video
+                  ref={remoteVideoRef}
+                  autoPlay
+                  playsInline
+                  className="w-full h-full object-cover"
+                />
+                {callState.type === "video" && (
+                  <div className="absolute bottom-2 right-2 w-24 h-24 border border-white/30 overflow-hidden rounded-lg">
+                    <video
+                      ref={localVideoRef}
+                      autoPlay
+                      playsInline
+                      muted
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="flex flex-col items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={() => endCall()}
+                className="px-4 py-2 bg-red-600 rounded text-white"
+              >
+                End Call
+              </button>
+              {callState.type === "voice" && (
+                <p className="text-gray-200 text-sm">
+                  Voice call active. Your audio is connected.
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
         {/* ***********chat area*********** */}
         <div className='flex flex-col h-[calc(100%-70px)] overflow-y-auto p-3 pb-6'>

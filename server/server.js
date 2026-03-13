@@ -37,6 +37,47 @@ io.on("connection",(socket)=>{
         delete userSocketMap[userId]
         io.emit("getOnlineUsers",Object.keys(userSocketMap))
     })
+
+    // signaling events for WebRTC
+    socket.on("call-user", ({ to, offer, callType }) => {
+        const targetSocketId = userSocketMap[to]
+        if (targetSocketId) {
+            io.to(targetSocketId).emit("incoming-call", {
+                from: userId,
+                offer,
+                callType,
+            })
+        }
+    })
+
+    socket.on("answer-call", ({ to, answer }) => {
+        const targetSocketId = userSocketMap[to]
+        if (targetSocketId) {
+            io.to(targetSocketId).emit("call-answered", {
+                from: userId,
+                answer,
+            })
+        }
+    })
+
+    socket.on("ice-candidate", ({ to, candidate }) => {
+        const targetSocketId = userSocketMap[to]
+        if (targetSocketId) {
+            io.to(targetSocketId).emit("ice-candidate", {
+                from: userId,
+                candidate,
+            })
+        }
+    })
+
+    socket.on("end-call", ({ to }) => {
+        const targetSocketId = userSocketMap[to]
+        if (targetSocketId) {
+            io.to(targetSocketId).emit("call-ended", {
+                from: userId,
+            })
+        }
+    })
 })
 
 //middleware setup
